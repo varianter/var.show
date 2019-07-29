@@ -6,7 +6,7 @@ Work in progress "deploy yourself" URL shortner written in Rust for running on A
 
 * POST URL and return random shorted
 * POST URL with shorted string specified (named)
-* Redirect `var.show/<ID>` to shorted URL
+* Redirect `var.show/<ID>` to full URL
 
 
 ## Features next release
