@@ -10,14 +10,14 @@ struct RedirectEntity {
 }
 
 #[func]
-#[binding(name = "req", route = "redirect/{key}")]
+#[binding(name = "_req", route = "redirect/{key}")]
 #[binding(
     name = "table",
     table_name = "redirect",
     partition_key = "with_key",
     row_key = "{key}"
 )]
-pub fn redirect(req: HttpRequest, table: Table) -> HttpResponse {
+pub fn redirect(_req: HttpRequest, table: Table) -> HttpResponse {
     let redirect_url = get_redirect_url(table);
     match redirect_url {
         None => HttpResponse::build()
