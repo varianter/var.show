@@ -2,12 +2,7 @@ use azure_functions::bindings::{HttpRequest, HttpResponse, Table};
 use azure_functions::func;
 use azure_functions::http::Status;
 
-use serde::Deserialize;
-
-#[derive(Deserialize)]
-struct RedirectEntity {
-    redirect_url: String,
-}
+use super::entities::RedirectEntity;
 
 #[func]
 #[binding(name = "_req", route = "redirect/{key}")]
