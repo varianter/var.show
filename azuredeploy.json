@@ -22,6 +22,13 @@
                 "description": "Location for all resources."
             }
         },
+        "dockerImage": {
+            "type": "string",
+            "defaultValue": "varianter/varshow:latest",
+            "metadata": {
+                "description": "The docker image to use."
+            }
+        },
         "storageAccountType": {
             "type": "string",
             "defaultValue": "Standard_LRS",
@@ -40,7 +47,6 @@
         "functionAppName": "[parameters('appName')]",
         "applicationInsightsName": "[parameters('appName')]",
         "storageAccountName": "[concat(variables('appNameShort'), uniquestring(resourceGroup().id))]",
-        "storageAccountid": "[concat(resourceGroup().id,'/providers/','Microsoft.Storage/storageAccounts/', variables('storageAccountName'))]",
         "hostingPlanName": "[parameters('appName')]",
         "actualServerFarmId": "[if(equals(length(parameters('serverFarmId')), 0), resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName')), parameters('serverFarmId'))]"
     },
@@ -87,7 +93,7 @@
                 "hostingEnvironment": "",
                 "siteConfig": {
                     "numberOfWorkers": 1,
-                    "linuxFxVersion": "DOCKER|varianter/varshow:latest",
+                    "linuxFxVersion": "[concat('DOCKER|', parameters('dockerImage'))]",
                     "appCommandLine": "",
                     "alwaysOn": false,
                     "appSettings": [
