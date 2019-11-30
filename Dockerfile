@@ -26,5 +26,7 @@ COPY --from=runtime-image [ "/azure-functions-host", "/azure-functions-host" ]
 # Copy the script root contents from the build image
 COPY --from=build-image ["/home/site/wwwroot", "/home/site/wwwroot"]
 
+COPY proxies.json /home/site/wwwroot
+
 WORKDIR /home/site/wwwroot
 CMD [ "/azure-functions-host/Microsoft.Azure.WebJobs.Script.WebHost" ]
