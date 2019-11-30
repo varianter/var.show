@@ -5,7 +5,7 @@ use azure_functions::http::Status;
 use super::entities::RedirectEntity;
 
 #[func]
-#[binding(name = "_req", route = "redirect/{key}")]
+#[binding(name = "_req", route = "redirect/{key}", auth_level = "anonymous")]
 #[binding(
     name = "table",
     table_name = "redirect",
