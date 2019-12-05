@@ -4,10 +4,13 @@ mod add;
 mod entities;
 mod random;
 mod redirect;
+mod slack;
+mod table;
 
 // Export the Azure Functions here.
 azure_functions::export! {
     add::add,
     random::random,
     redirect::redirect,
+    slack::slack,
 }
