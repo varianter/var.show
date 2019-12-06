@@ -1,29 +1,25 @@
 use super::entities::RedirectEntity;
+use super::table::add_redirect_entity;
 use azure_functions::{
     bindings::{HttpRequest, HttpResponse, Table},
     func,
     http::Status,
 };
-use serde_json::Value;
+use std::env::var;
 
 #[func]
 #[binding(name = "req", methods = "post", route = "add/{key}")]
 #[binding(name = "output1", table_name = "redirect")]
 pub fn add(req: HttpRequest) -> (HttpResponse, Option<Table>) {
+    let base_url = var("BaseUrl").unwrap();
+
     if let Ok(entity) = RedirectEntity::from_request(&req) {
         let key = req.route_params().get("key").unwrap();
-        let mut table = Table::new();
-        {
-            let row = table.add_row("with_key", key);
-            row.insert(
-                "redirect_url".to_string(),
-                Value::String(entity.redirect_url),
-            );
-        }
+        let table = add_redirect_entity(key, entity);
         return (
             (HttpResponse::build()
                 .status(Status::Ok)
-                .body(format!("Your key: {}", key))
+                .body(format!("{}/{}", base_url, key))
                 .finish()),
             Some(table),
         );

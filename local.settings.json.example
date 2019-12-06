@@ -2,7 +2,9 @@
   "IsEncrypted": false,
   "Values": {
     "FUNCTIONS_WORKER_RUNTIME": "Rust",
-    "languageWorkers:workersDirectory": "workers"
+    "languageWorkers:workersDirectory": "workers",
+    "SlackCommandToken": "token",
+    "BaseUrl": "http://var.show"
   },
   "ConnectionStrings": {
     "AzureWebJobsStorage": "<secret>"

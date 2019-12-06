@@ -3,32 +3,24 @@ use azure_functions::{
     func,
     http::Status,
 };
-use rand::distributions::Alphanumeric;
-use rand::{thread_rng, Rng};
-use serde_json::Value;
+use std::env::var;
 
 use super::entities::RedirectEntity;
+use super::table::add_redirect_entity_random_key;
 
 #[func]
 #[binding(name = "req", methods = "post", route = "random")]
 #[binding(name = "output1", table_name = "redirect")]
 pub fn random(req: HttpRequest) -> (HttpResponse, Option<Table>) {
-    if let Ok(entity) = RedirectEntity::from_request(&req) {
-        let rand_string: String = thread_rng().sample_iter(&Alphanumeric).take(10).collect();
+    let base_url = var("BaseUrl").unwrap();
 
-        let mut table = Table::new();
-        {
-            let row = table.add_row("with_key", rand_string.as_str());
-            row.insert(
-                "redirect_url".to_string(),
-                Value::String(entity.redirect_url),
-            );
-        }
+    if let Ok(entity) = RedirectEntity::from_request(&req) {
+        let (key, table) = add_redirect_entity_random_key(entity);
 
         return (
             (HttpResponse::build()
                 .status(Status::Ok)
-                .body(format!("Your key: {}", rand_string))
+                .body(format!("{}/{}", base_url, key))
                 .finish()),
             Some(table),
         );
