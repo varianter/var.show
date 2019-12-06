@@ -8,6 +8,20 @@
                 "description": "The name of the function app."
             }
         },
+        "slackToken": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "The token to intercept a Slack command."
+            }
+        },
+        "baseUrl": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "The base URL."
+            }
+        },
         "serverFarmId": {
             "type": "string",
             "defaultValue": "",
@@ -124,6 +138,14 @@
                         {
                             "name": "WEBSITES_ENABLE_APP_SERVICE_STORAGE",
                             "value": false
+                        },
+                        {
+                            "name": "SlackCommandToken",
+                            "value": "[parameters('slackToken')]"
+                        },
+                        {
+                            "name": "BaseUrl",
+                            "value": "[parameters('baseUrl')]"
                         }
                     ]
                 }
