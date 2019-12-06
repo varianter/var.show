@@ -3,6 +3,7 @@ use azure_functions::{
     func,
     http::Status,
 };
+use std::env::var;
 
 use super::entities::RedirectEntity;
 use super::table::add_redirect_entity_random_key;
@@ -11,13 +12,15 @@ use super::table::add_redirect_entity_random_key;
 #[binding(name = "req", methods = "post", route = "random")]
 #[binding(name = "output1", table_name = "redirect")]
 pub fn random(req: HttpRequest) -> (HttpResponse, Option<Table>) {
+    let base_url = var("BaseUrl").unwrap();
+
     if let Ok(entity) = RedirectEntity::from_request(&req) {
         let (key, table) = add_redirect_entity_random_key(entity);
 
         return (
             (HttpResponse::build()
                 .status(Status::Ok)
-                .body(format!("Your key: {}", key))
+                .body(format!("{}/{}", base_url, key))
                 .finish()),
             Some(table),
         );

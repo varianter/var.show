@@ -5,18 +5,21 @@ use azure_functions::{
     func,
     http::Status,
 };
+use std::env::var;
 
 #[func]
 #[binding(name = "req", methods = "post", route = "add/{key}")]
 #[binding(name = "output1", table_name = "redirect")]
 pub fn add(req: HttpRequest) -> (HttpResponse, Option<Table>) {
+    let base_url = var("BaseUrl").unwrap();
+
     if let Ok(entity) = RedirectEntity::from_request(&req) {
         let key = req.route_params().get("key").unwrap();
         let table = add_redirect_entity(key, entity);
         return (
             (HttpResponse::build()
                 .status(Status::Ok)
-                .body(format!("Your key: {}", key))
+                .body(format!("{}/{}", base_url, key))
                 .finish()),
             Some(table),
         );

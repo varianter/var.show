@@ -25,12 +25,16 @@ pub fn slack(req: HttpRequest) -> (HttpResponse, Option<Table>) {
                 let table: Table;
 
                 let url = url_capture.as_str();
+                let entity = RedirectEntity {
+                    redirect_url: String::from(url),
+                    creator: Some(slack_payload.user_name),
+                };
+
                 if let Some(key_capture) = command_capture.name("key") {
                     key = String::from(key_capture.as_str());
-                    table = add_redirect_entity(&key, RedirectEntity::new(String::from(url)));
+                    table = add_redirect_entity(&key, entity);
                 } else {
-                    let (rand_key, c_table) =
-                        add_redirect_entity_random_key(RedirectEntity::new(String::from(url)));
+                    let (rand_key, c_table) = add_redirect_entity_random_key(entity);
                     key = rand_key;
                     table = c_table;
                 }
