@@ -7,9 +7,17 @@ use serde_urlencoded;
 #[derive(Deserialize)]
 pub struct RedirectEntity {
     pub redirect_url: String,
+    pub creator: Option<String>,
 }
 
 impl RedirectEntity {
+    pub fn new(redirect_url: String) -> RedirectEntity {
+        RedirectEntity {
+            redirect_url,
+            creator: None,
+        }
+    }
+
     pub fn from_request(req: &HttpRequest) -> JsonResult<RedirectEntity> {
         req.body().as_json::<RedirectEntity>()
     }
