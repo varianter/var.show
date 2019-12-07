@@ -32,6 +32,9 @@ pub struct SlackCommand {
 
 impl SlackCommand {
     pub fn from_request(req: &HttpRequest) -> std::result::Result<SlackCommand, DeserializeError> {
-        serde_urlencoded::from_str(req.body().as_str().unwrap())
+        let body = req.body();
+        let body_text = body.as_str().unwrap();
+        let text_without_lines: String = body_text.lines().collect();
+        serde_urlencoded::from_str(text_without_lines.as_str())
     }
 }
