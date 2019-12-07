@@ -52,14 +52,28 @@ pub fn slack(req: HttpRequest) -> (HttpResponse, Option<Table>) {
                         Some(table),
                     );
                 }
+            } else {
+                return build_error_response(
+                    format!(
+                        "This does not seem to be a valid Slack command: {}",
+                        slack_payload.command
+                    )
+                    .as_str(),
+                );
             }
+        } else {
+            return build_error_response("Invalid token.");
         }
     }
 
+    build_error_response("Could not parse payload from Slack command.")
+}
+
+fn build_error_response(message: &str) -> (HttpResponse, Option<Table>) {
     (
         HttpResponse::build()
-            .status(Status::BadRequest)
-            .body("This does not seem to be a valid Slack command.")
+            .status(Status::Ok)
+            .body(message)
             .finish(),
         None,
     )
