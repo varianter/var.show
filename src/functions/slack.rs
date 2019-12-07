@@ -5,6 +5,7 @@ use azure_functions::{
     func,
     http::Status,
 };
+use log::error;
 use regex::Regex;
 use std::env::var;
 
@@ -66,6 +67,9 @@ pub fn slack(req: HttpRequest) -> (HttpResponse, Option<Table>) {
         }
     }
 
+    let body = req.body();
+    let text = body.as_str().unwrap();
+    error!("Could not parse payload: {}", text);
     build_error_response("Could not parse payload from Slack command.")
 }
 
