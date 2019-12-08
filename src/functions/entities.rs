@@ -26,7 +26,7 @@ pub struct SlackCommand {
     pub user_id: String,
     pub user_name: String,
     pub command: String,
-    pub text: u32,
+    pub text: String,
     pub response_url: String,
 }
 

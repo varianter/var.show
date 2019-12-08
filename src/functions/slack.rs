@@ -54,22 +54,20 @@ pub fn slack(req: HttpRequest) -> (HttpResponse, Option<Table>) {
                     );
                 }
             } else {
-                return build_error_response(
-                    format!(
-                        "This does not seem to be a valid Slack command: {}",
-                        slack_payload.command
-                    )
-                    .as_str(),
+                let message = format!(
+                    "This does not seem to be a valid Slack command: {}",
+                    slack_payload.command
                 );
+                error!("{}", message);
+                return build_error_response(message.as_str());
             }
         } else {
+            error!("Invalid token.");
             return build_error_response("Invalid token.");
         }
     }
 
-    let body = req.body();
-    let text = body.as_str().unwrap();
-    error!("Could not parse payload: {}", text);
+    error!("Could not parse payload");
     build_error_response("Could not parse payload from Slack command.")
 }
 
