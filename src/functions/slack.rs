@@ -23,10 +23,10 @@ pub fn slack(req: HttpRequest) -> (HttpResponse, Option<Table>) {
         let base_url = var("BaseUrl").unwrap();
 
         if token == slack_payload.token {
-            let re = Regex::new(r"(/varshow)\s*(?P<url>\S*)\s*(?P<key>\S+)?").unwrap();
+            let re = Regex::new(r"\s*(?P<url>\S*)\s*(?P<key>\S+)?").unwrap();
 
-            if let Some(command_capture) = re.captures_iter(slack_payload.command.as_str()).nth(0) {
-                if let Some(url_capture) = command_capture.name("url") {
+            if let Some(text_capture) = re.captures_iter(slack_payload.text.as_str()).nth(0) {
+                if let Some(url_capture) = text_capture.name("url") {
                     let key: String;
                     let table: Table;
 
@@ -36,7 +36,7 @@ pub fn slack(req: HttpRequest) -> (HttpResponse, Option<Table>) {
                         creator: Some(slack_payload.user_name),
                     };
 
-                    if let Some(key_capture) = command_capture.name("key") {
+                    if let Some(key_capture) = text_capture.name("key") {
                         key = String::from(key_capture.as_str());
                         table = add_redirect_entity(&key, entity);
                     } else {
