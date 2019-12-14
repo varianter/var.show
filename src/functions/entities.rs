@@ -1,4 +1,4 @@
-use azure_functions::bindings::HttpRequest;
+use azure_functions::bindings::{HttpRequest, QueueMessage};
 use serde::de::value::Error as DeserializeError;
 use serde::Deserialize;
 use serde_json::Result as JsonResult;
@@ -34,7 +34,21 @@ impl SlackCommand {
     pub fn from_request(req: &HttpRequest) -> std::result::Result<SlackCommand, DeserializeError> {
         let body = req.body();
         let body_text = body.as_str().unwrap();
-        let text_without_lines: String = body_text.lines().collect();
-        serde_urlencoded::from_str(text_without_lines.as_str())
+        SlackCommand::from_str(body_text)
+    }
+
+    pub fn from_str(text: &str) -> std::result::Result<SlackCommand, DeserializeError> {
+        serde_urlencoded::from_str(text)
+    }
+}
+
+#[derive(Deserialize)]
+pub struct SlackPayload {
+    pub payload: String,
+}
+
+impl SlackPayload {
+    pub fn from_queue_message(message: &QueueMessage) -> JsonResult<SlackPayload> {
+        message.as_json::<SlackPayload>()
     }
 }

@@ -5,6 +5,8 @@ mod entities;
 mod random;
 mod redirect;
 mod slack;
+mod slack_command_handler;
+mod slack_command_receiver;
 mod table;
 
 // Export the Azure Functions here.
@@ -13,4 +15,6 @@ azure_functions::export! {
     random::random,
     redirect::redirect,
     slack::slack,
+    slack_command_handler::slack_command_handler,
+    slack_command_receiver::slack_command_receiver,
 }
