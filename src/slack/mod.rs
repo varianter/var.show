@@ -11,71 +11,9 @@ use std::env::var;
 
 pub async fn handle_slack_command(slack: &SlackCommand) {
     let token = var("SlackCommandToken").unwrap();
-    let base_url = var("BaseUrl").unwrap();
-
     if token == slack.token {
         if let Some(command) = VarShowCommand::parse(&slack) {
-            match command.task {
-                VarShowTask::Help => {
-                    post_json(
-                        &slack.response_url,
-                        json!({ "text": 
-"Hey 🚀! These commands are supported:
-/varshow add {url} {key}
-/varshow add {url}
-/varshow update {url} {key}
-/varshow delete {key}"}),
-                    )
-                    .await
-                }
-                VarShowTask::Add(redirect_url, key_option) => {
-                    let key: String;
-                    match key_option {
-                        Some(k) => key = k,
-                        None => key = thread_rng().sample_iter(&Alphanumeric).take(10).collect(),
-                    }
-
-                    match get_redirect("with_key", key.as_str()).await {
-                        Some(existing) => {
-                            let message = format!(
-                                "Could not add {}/{}, it already points to {}",
-                                base_url, key, existing.redirect_url
-                            );
-                            post_json(&slack.response_url, json!({ "text": message })).await;
-                        }
-                        None => {
-                            add_redirect(RedirectEntity {
-                                RowKey: key.clone(),
-                                PartitionKey: "with_key".to_string(),
-                                redirect_url: redirect_url.clone(),
-                                creator: Some(command.creator),
-                            })
-                            .await;
-                            let message =
-                                format!("Added {}/{} pointing to {}", base_url, key, redirect_url);
-                            post_json(&slack.response_url, json!({ "text": message })).await;
-                        }
-                    }
-                }
-                VarShowTask::Update(redirect_url, key) => {
-                    update_redirect(RedirectEntity {
-                        RowKey: key.clone(),
-                        PartitionKey: "with_key".to_string(),
-                        redirect_url: redirect_url.clone(),
-                        creator: Some(command.creator),
-                    })
-                    .await;
-                    let message =
-                        format!("Updated {}/{} pointing to {}", base_url, key, redirect_url);
-                    post_json(&slack.response_url, json!({ "text": message })).await;
-                }
-                VarShowTask::Delete(key) => {
-                    delete_redirect("with_key", key.as_str()).await;
-                    let message = format!("Deleted redirect with key: {}", key);
-                    post_json(&slack.response_url, json!({ "text": message })).await;
-                }
-                _ => post_json(&slack.response_url, json!({ "text": "Unknown command." })).await,
-            }
+            handle_varshow_comand(command).await;
         } else {
             post_json(
                 &slack.response_url,
@@ -92,6 +30,72 @@ pub async fn handle_slack_command(slack: &SlackCommand) {
         error!("Invalid Slack token.");
     }
 }
+
+async fn handle_varshow_comand(command: VarShowCommand) {
+    let base_url = var("BaseUrl").unwrap();
+
+    match command.task {
+        VarShowTask::Help => {
+            post_json(
+                &command.response_url,
+                json!({ "text": 
+"Hey 🚀! These commands are supported:
+/varshow add {url} {key}
+/varshow add {url}
+/varshow update {url} {key}
+/varshow delete {key}"}),
+            )
+            .await
+        }
+        VarShowTask::Add(redirect_url, key_option) => {
+            let key: String;
+            match key_option {
+                Some(k) => key = k,
+                None => key = thread_rng().sample_iter(&Alphanumeric).take(10).collect(),
+            }
+
+            match get_redirect("with_key", key.as_str()).await {
+                Some(existing) => {
+                    let message = format!(
+                        "Could not add {}/{}, it already points to {}",
+                        base_url, key, existing.redirect_url
+                    );
+                    post_json(&command.response_url, json!({ "text": message })).await;
+                }
+                None => {
+                    add_redirect(RedirectEntity {
+                        RowKey: key.clone(),
+                        PartitionKey: "with_key".to_string(),
+                        redirect_url: redirect_url.clone(),
+                        creator: Some(command.creator),
+                    })
+                    .await;
+                    let message =
+                        format!("Added {}/{} pointing to {}", base_url, key, redirect_url);
+                    post_json(&command.response_url, json!({ "text": message })).await;
+                }
+            }
+        }
+        VarShowTask::Update(redirect_url, key) => {
+            update_redirect(RedirectEntity {
+                RowKey: key.clone(),
+                PartitionKey: "with_key".to_string(),
+                redirect_url: redirect_url.clone(),
+                creator: Some(command.creator),
+            })
+            .await;
+            let message = format!("Updated {}/{} pointing to {}", base_url, key, redirect_url);
+            post_json(&command.response_url, json!({ "text": message })).await;
+        }
+        VarShowTask::Delete(key) => {
+            delete_redirect("with_key", key.as_str()).await;
+            let message = format!("Deleted redirect with key: {}", key);
+            post_json(&command.response_url, json!({ "text": message })).await;
+        }
+        _ => post_json(&command.response_url, json!({ "text": "Unknown command." })).await,
+    }
+}
+
 async fn post_json(url: &str, json: JsonValue) {
     let client = Client::new();
     client
