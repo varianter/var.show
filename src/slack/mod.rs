@@ -76,6 +76,17 @@ pub async fn handle_slack_command(slack: &SlackCommand) {
                 }
                 _ => post_json(&slack.response_url, json!({ "text": "Unknown command." })).await,
             }
+        } else {
+            post_json(
+                &slack.response_url,
+                json!({ "text": 
+"Hey 🚀! These commands are supported:
+/varshow add {url} {key}
+/varshow add {url}
+/varshow update {url} {key}
+/varshow delete {key}"}),
+            )
+            .await
         }
     } else {
         error!("Invalid Slack token.");

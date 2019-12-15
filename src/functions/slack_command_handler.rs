@@ -5,7 +5,7 @@ use azure_functions::{bindings::QueueTrigger, func};
 use serde::de::value::Error as DeserializeError;
 
 #[func]
-#[binding(name = "trigger", queue_name = "slack")]
+#[binding(name = "trigger", queue_name = "slackcommand")]
 pub async fn slack_command_handler(trigger: QueueTrigger) {
     let slack_command = retrieve_slack_command(&trigger.message);
     handle_slack_command(&slack_command).await;
