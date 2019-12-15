@@ -2,6 +2,8 @@
 
 FROM peterhuene/azure-functions-rs-build:0.11.0 AS build-image
 
+RUN apt-get -y install pkg-config libssl-dev
+
 WORKDIR /src
 COPY . /src
 
