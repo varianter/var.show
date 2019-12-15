@@ -2,11 +2,10 @@ use super::entities::SlackPayload;
 use crate::slack::{handle_slack_command, SlackCommand};
 use azure_functions::bindings::QueueMessage;
 use azure_functions::{bindings::QueueTrigger, func};
-use log::info;
 use serde::de::value::Error as DeserializeError;
 
 #[func]
-#[binding(name = "trigger", queue_name = "slackcommand")]
+#[binding(name = "trigger", queue_name = "slack")]
 pub async fn slack_command_handler(trigger: QueueTrigger) {
     let slack_command = retrieve_slack_command(&trigger.message);
     handle_slack_command(&slack_command).await;

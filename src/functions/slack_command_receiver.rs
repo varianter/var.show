@@ -12,10 +12,7 @@ pub fn slack_command_receiver(req: HttpRequest) -> (HttpResponse, Option<QueueMe
     let body = req.body();
     if let Some(body_text) = body.as_str() {
         return (
-            HttpResponse::build()
-                .status(Status::Ok)
-                .body("Processing...")
-                .finish(),
+            HttpResponse::build().status(Status::Ok).body("").finish(),
             Some(json!({ "payload": body_text }).into()),
         );
     }

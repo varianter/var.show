@@ -1,34 +1,94 @@
 use crate::table::entities::RedirectEntity;
-use crate::table::{add_redirect, get_redirect, update_redirect};
+use crate::table::{add_redirect, delete_redirect, get_redirect, update_redirect};
+use log::error;
+use rand::distributions::Alphanumeric;
+use rand::{thread_rng, Rng};
 use regex::Regex;
 use reqwest::Client;
 use serde::Deserialize;
+use serde_json::{json, Value as JsonValue};
+use std::env::var;
 
 pub async fn handle_slack_command(slack: &SlackCommand) {
-    if let Some(command) = VarShowCommand::parse(&slack) {
-        match command.task {
-            VarShowTask::Help => println!("Help!"),
-            VarShowTask::Add(redirect_url, key_option) => {
-                let key = key_option.unwrap();
-                add_redirect(RedirectEntity {
-                    RowKey: key.clone(),
-                    PartitionKey: "with_key".to_string(),
-                    redirect_url,
-                    creator: Some(command.creator),
-                })
-                .await;
-                let client = reqwest::Client::new();
-                let full_url = format!("http://var.show/{}", key);
-                client
-                    .post(slack.response_url.as_str())
-                    .body(full_url)
-                    .send()
+    let token = var("SlackCommandToken").unwrap();
+    let base_url = var("BaseUrl").unwrap();
+
+    if token == slack.token {
+        if let Some(command) = VarShowCommand::parse(&slack) {
+            match command.task {
+                VarShowTask::Help => {
+                    post_json(
+                        &slack.response_url,
+                        json!({ "text": 
+"Hey 🚀! These commands are supported:
+/varshow add {url} {key}
+/varshow add {url}
+/varshow update {url} {key}
+/varshow delete {key}"}),
+                    )
                     .await
-                    .expect("wuut");
+                }
+                VarShowTask::Add(redirect_url, key_option) => {
+                    let key: String;
+                    match key_option {
+                        Some(k) => key = k,
+                        None => key = thread_rng().sample_iter(&Alphanumeric).take(10).collect(),
+                    }
+
+                    match get_redirect("with_key", key.as_str()).await {
+                        Some(existing) => {
+                            let message = format!(
+                                "Could not add {}/{}, it already points to {}",
+                                base_url, key, existing.redirect_url
+                            );
+                            post_json(&slack.response_url, json!({ "text": message })).await;
+                        }
+                        None => {
+                            add_redirect(RedirectEntity {
+                                RowKey: key.clone(),
+                                PartitionKey: "with_key".to_string(),
+                                redirect_url: redirect_url.clone(),
+                                creator: Some(command.creator),
+                            })
+                            .await;
+                            let message =
+                                format!("Added {}/{} pointing to {}", base_url, key, redirect_url);
+                            post_json(&slack.response_url, json!({ "text": message })).await;
+                        }
+                    }
+                }
+                VarShowTask::Update(redirect_url, key) => {
+                    update_redirect(RedirectEntity {
+                        RowKey: key.clone(),
+                        PartitionKey: "with_key".to_string(),
+                        redirect_url: redirect_url.clone(),
+                        creator: Some(command.creator),
+                    })
+                    .await;
+                    let message =
+                        format!("Updated {}/{} pointing to {}", base_url, key, redirect_url);
+                    post_json(&slack.response_url, json!({ "text": message })).await;
+                }
+                VarShowTask::Delete(key) => {
+                    delete_redirect("with_key", key.as_str()).await;
+                    let message = format!("Deleted redirect with key: {}", key);
+                    post_json(&slack.response_url, json!({ "text": message })).await;
+                }
+                _ => post_json(&slack.response_url, json!({ "text": "Unknown command." })).await,
             }
-            _ => println!("Handle rest later"),
         }
+    } else {
+        error!("Invalid Slack token.");
     }
+}
+async fn post_json(url: &str, json: JsonValue) {
+    let client = Client::new();
+    client
+        .post(url)
+        .json(&json)
+        .send()
+        .await
+        .expect("JSON should be posted.");
 }
 
 #[derive(Deserialize)]
@@ -109,6 +169,7 @@ impl VarShowTask {
 pub struct VarShowCommand {
     pub task: VarShowTask,
     pub creator: String,
+    pub response_url: String,
 }
 
 impl VarShowCommand {
@@ -117,6 +178,7 @@ impl VarShowCommand {
             return Some(VarShowCommand {
                 task,
                 creator: slack.user_name.clone(),
+                response_url: slack.response_url.clone(),
             });
         }
 

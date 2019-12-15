@@ -28,10 +28,10 @@ pub async fn add_redirect(entity: entities::RedirectEntity) {
     if let Some(ts) = get_table_service() {
         match ts.insert_entity("redirect", &entity).await {
             Ok(_) => {
-                info!("Updated entity.");
+                info!("Insert entity.");
             }
             Err(err) => {
-                error!("Failed when trying to update entity: {}", err);
+                error!("Failed when trying to insert entity: {}", err);
             }
         }
     } else {
@@ -46,10 +46,25 @@ pub async fn update_redirect(entity: entities::RedirectEntity) {
             .await
         {
             Ok(_) => {
-                info!("Inserted entity.");
+                info!("Updated entity.");
             }
             Err(err) => {
-                error!("Failed when trying to insert entity: {}", err);
+                error!("Failed when trying to update entity: {}", err);
+            }
+        }
+    } else {
+        error!("Failed to retrieve table service");
+    }
+}
+
+pub async fn delete_redirect(partition_key: &str, row_key: &str) {
+    if let Some(ts) = get_table_service() {
+        match ts.delete_entity("redirect", &partition_key, &row_key).await {
+            Ok(_) => {
+                info!("Deleted entity.");
+            }
+            Err(err) => {
+                error!("Failed when trying to delete entity: {}", err);
             }
         }
     } else {
