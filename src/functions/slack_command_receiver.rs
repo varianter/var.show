@@ -6,7 +6,12 @@ use azure_functions::{
 use serde_json::json;
 
 #[func]
-#[binding(name = "req", methods = "post", route = "slack")]
+#[binding(
+    name = "req",
+    methods = "post",
+    route = "slack",
+    auth_level = "anonymous"
+)]
 #[binding(name = "output1", queue_name = "slackcommand")]
 pub fn slack_command_receiver(req: HttpRequest) -> (HttpResponse, Option<QueueMessage>) {
     let body = req.body();
