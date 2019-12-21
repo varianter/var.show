@@ -1,18 +1,20 @@
 pub mod entities;
 use azure_sdk_storage_core::client::Client;
 use azure_sdk_storage_table::table::TableService;
+use azure_sdk_storage_table::TableEntry;
 use derive_more::From;
+use entities::RedirectEntity;
 use log::{error, info};
 use regex::Regex;
 use std::env::var;
 
-pub async fn get_redirect(partition_key: &str, row_key: &str) -> Option<entities::RedirectEntity> {
+pub async fn get_redirect(partition_key: &str, row_key: &str) -> Option<RedirectEntity> {
     if let Some(ts) = get_table_service() {
         match ts
-            .get_entity::<entities::RedirectEntity>("redirect", partition_key, row_key)
+            .get_entry::<entities::RedirectEntity>("redirect", partition_key, row_key)
             .await
         {
-            Ok(entity) => entity,
+            Ok(entity) => Some(entity.payload),
             Err(err) => {
                 error!("Failed when trying to retrieve entity: {}", err);
                 None
@@ -24,9 +26,20 @@ pub async fn get_redirect(partition_key: &str, row_key: &str) -> Option<entities
     }
 }
 
-pub async fn add_redirect(entity: entities::RedirectEntity) {
+pub async fn add_redirect(partition_key: String, row_key: String, entity: RedirectEntity) {
     if let Some(ts) = get_table_service() {
-        match ts.insert_entity("redirect", &entity).await {
+        match ts
+            .insert_entry(
+                "redirect",
+                &TableEntry {
+                    partition_key,
+                    row_key,
+                    etag: None,
+                    payload: entity,
+                },
+            )
+            .await
+        {
             Ok(_) => {
                 info!("Insert entity.");
             }
@@ -39,10 +52,22 @@ pub async fn add_redirect(entity: entities::RedirectEntity) {
     }
 }
 
-pub async fn update_redirect(entity: entities::RedirectEntity) {
+pub async fn update_redirect(
+    partition_key: String,
+    row_key: String,
+    entity: entities::RedirectEntity,
+) {
     if let Some(ts) = get_table_service() {
         match ts
-            .update_entity("redirect", &entity.PartitionKey, &entity.RowKey, &entity)
+            .update_entry(
+                "redirect",
+                &TableEntry {
+                    partition_key,
+                    row_key,
+                    etag: None,
+                    payload: entity,
+                },
+            )
             .await
         {
             Ok(_) => {
@@ -57,9 +82,20 @@ pub async fn update_redirect(entity: entities::RedirectEntity) {
     }
 }
 
-pub async fn delete_redirect(partition_key: &str, row_key: &str) {
+pub async fn delete_redirect(partition_key: String, row_key: String) {
     if let Some(ts) = get_table_service() {
-        match ts.delete_entity("redirect", &partition_key, &row_key).await {
+        match ts
+            .delete_entry(
+                "redirect",
+                &TableEntry {
+                    partition_key,
+                    row_key,
+                    etag: None,
+                    payload: {},
+                },
+            )
+            .await
+        {
             Ok(_) => {
                 info!("Deleted entity.");
             }

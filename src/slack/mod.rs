@@ -63,12 +63,14 @@ async fn handle_varshow_comand(command: VarShowCommand) {
                     post_json(&command.response_url, json!({ "text": message })).await;
                 }
                 None => {
-                    add_redirect(RedirectEntity {
-                        RowKey: key.clone(),
-                        PartitionKey: "with_key".to_string(),
-                        redirect_url: redirect_url.clone(),
-                        creator: Some(command.creator),
-                    })
+                    add_redirect(
+                        "with_key".to_string(),
+                        key.clone(),
+                        RedirectEntity {
+                            redirect_url: redirect_url.clone(),
+                            creator: Some(command.creator),
+                        },
+                    )
                     .await;
                     let message =
                         format!("Added {}/{} pointing to {}", base_url, key, redirect_url);
@@ -77,18 +79,20 @@ async fn handle_varshow_comand(command: VarShowCommand) {
             }
         }
         VarShowTask::Update(redirect_url, key) => {
-            update_redirect(RedirectEntity {
-                RowKey: key.clone(),
-                PartitionKey: "with_key".to_string(),
-                redirect_url: redirect_url.clone(),
-                creator: Some(command.creator),
-            })
+            update_redirect(
+                "with_key".to_string(),
+                key.clone(),
+                RedirectEntity {
+                    redirect_url: redirect_url.clone(),
+                    creator: Some(command.creator),
+                },
+            )
             .await;
             let message = format!("Updated {}/{} pointing to {}", base_url, key, redirect_url);
             post_json(&command.response_url, json!({ "text": message })).await;
         }
         VarShowTask::Delete(key) => {
-            delete_redirect("with_key", key.as_str()).await;
+            delete_redirect("with_key".to_string(), key.clone()).await;
             let message = format!("Deleted redirect with key: {}", key);
             post_json(&command.response_url, json!({ "text": message })).await;
         }
