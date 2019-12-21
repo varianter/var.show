@@ -1,8 +1,15 @@
 {
-    "version": "2.0",
-    "logging": {
-        "logLevel": {
-            "default": "Warning"
-        }
+  "version": "2.0",
+  "logging": {
+    "logLevel": {
+      "default": "Warning"
     }
+  },
+  "extensions": {
+    "queues": {
+      "maxPollingInterval": "00:00:01",
+      "batchSize": 5,
+      "maxDequeueCount": 1
+    }
+  }
 }
