@@ -15,7 +15,7 @@ Work in progress "deploy yourself" URL shortner written in Rust for running on A
 
 ## Deploy
 
-[![Deploy to Azure](https://azuredeploy.net/deploybutton.png)](https://azuredeploy.net/?repository=https://github.com/varianter/var.show).
+[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fvarianter%2Fvar.show%2Fmaster%2Fazuredeploy.json)
 
 Press the above button.
 
